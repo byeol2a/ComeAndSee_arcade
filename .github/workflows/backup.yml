@@ -1,0 +1,36 @@
+name: daily-csv-backup
+
+# 매일 한국시간 00:05에 자동 실행 + Actions 탭에서 수동 실행 버튼도 제공
+on:
+  schedule:
+    - cron: '5 15 * * *'   # UTC 15:05 = KST 00:05
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 기록 전체를 CSV로 내려받기
+        run: |
+          mkdir -p backups
+          FILE="backups/기록백업-$(TZ=Asia/Seoul date +%F).csv"
+          curl -sf "https://uoskhqczrctiqzhbtgaa.supabase.co/rest/v1/records?select=created_at,game,school,grade,name,detail,score&order=created_at.asc" \
+            -H "apikey: sb_publishable_Z8CGRUULc2A8wxcataYcjg_IWRZ7Abn" \
+            -H "Authorization: Bearer sb_publishable_Z8CGRUULc2A8wxcataYcjg_IWRZ7Abn" \
+            -H "Accept: text/csv" > "$FILE"
+          # 엑셀에서 한글이 깨지지 않도록 BOM 추가
+          sed -i '1s/^/\xef\xbb\xbf/' "$FILE"
+          echo "저장됨: $FILE ($(wc -l < "$FILE")행)"
+
+      - name: 저장소에 커밋
+        run: |
+          git config user.name "backup-bot"
+          git config user.email "backup-bot@users.noreply.github.com"
+          git add backups
+          git commit -m "자동 백업 $(TZ=Asia/Seoul date '+%F %H:%M')" || echo "변경 없음"
+          git push
