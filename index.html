@@ -115,7 +115,6 @@ h1.title .hl{color:var(--yellow)}
   border:3px solid rgba(255,255,255,.08);
   max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;
 }
-.rank-row.head{position:sticky;top:0;background:#241A56;z-index:2}
 .pager{display:flex;align-items:center;gap:14px;margin-top:10px;font-weight:900;color:var(--dim);font-size:14px}
 .pg-btn{border:none;border-radius:999px;padding:9px 18px;background:rgba(255,255,255,.1);color:var(--white);font-weight:900;font-size:14px;font-family:'Noto Sans KR';cursor:pointer}
 .pg-btn:disabled{opacity:.3}
@@ -126,7 +125,7 @@ h1.title .hl{color:var(--yellow)}
 }
 .rank-row .rk{grid-row:span 2;align-self:center}
 .rank-row:last-child{border-bottom:none}
-.rank-row.head{background:rgba(255,255,255,.05);color:var(--dim);font-size:12px;font-weight:900;letter-spacing:.05em;white-space:nowrap;padding:9px 12px}
+.rank-row.head{position:sticky;top:0;z-index:5;background:#2A2060;color:var(--dim);font-size:12px;font-weight:900;letter-spacing:.05em;white-space:nowrap;padding:9px 12px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .rank-row .rk{font-family:'Black Han Sans';font-size:clamp(22px,5.5vw,30px);color:var(--cyan)}
 .rank-row:nth-child(2) .rk{color:var(--yellow)}
 .rank-row .who{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -465,6 +464,33 @@ function goPlayer(){
   $('btn-reset-req').style.display='none';
   show('scr-player');
 }
+/* ---- 비속어 필터 (이름·학교 입력용) ---- */
+const BAD_WORDS=[
+  /* 한국어 비속어·변형 */
+  '시발','씨발','씨빨','시빨','씨바','시바','싸발','ㅅㅂ','ㅆㅂ','tlqkf',
+  '병신','븅신','빙신','ㅂㅅ','병먹금',
+  '새끼','색기','새키','섀끼','ㅅㄲ',
+  '개새','개세','개색','개쉐','개자식','개년','개놈',
+  '지랄','즤랄','ㅈㄹ','존나','졸라','ㅈㄴ','존내',
+  '좆','좃','조까','좇','니미','니애미','느금','늬금','앰창','엠창','애미','에미뒤',
+  '꺼져','닥쳐','또라이','돌아이','또라','미친놈','미친년','미친새',
+  '걸레','창녀','창놈','매춘',
+  '보지','자지','자짓','고자','불알','섹스','쎅스','성교','야동','딸딸이','자위',
+  '살인','죽어라','뒤져라','뒤진다',
+  /* 영어 비속어 */
+  'fuck','fck','fuk','shit','sht','bitch','btch','asshole','dick','pussy','sex','porn','nigga','nigger','wtf','stfu',
+  /* 사칭 방지 */
+  '운영자','관리자','admin','master','선생님','교장','교감','staff'
+];
+function containsBadWord(str){
+  /* 공백·특수문자·숫자를 제거해 우회 표기(시1발, 시 발 등)도 검사 */
+  const norm=String(str).toLowerCase().replace(/[\s0-9~!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?ㆍ·•*]/g,'');
+  for(const w of BAD_WORDS){
+    if(norm.includes(w))return w;
+  }
+  return null;
+}
+
 /* Supabase 함수 호출 도우미 */
 async function rpc(fn,args){
   const res=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',headers:SB_HEADERS,body:JSON.stringify(args)});
@@ -480,6 +506,12 @@ $('btn-enter').addEventListener('click',async()=>{
     err('학교는 "○○중학교" 또는 "○○고등학교"까지 정확히 적어줘! (예: 한빛중학교)');return;
   }
   if(!/^\d{4}$/.test(pin)){err('비밀번호는 숫자 4자리로 만들어 줘!');return;}
+  /* 비속어 필터 */
+  if(containsBadWord(s)||containsBadWord(n)){
+    alert('⚠ 부적절한 단어가 감지되었습니다!\n\n이름과 학교는 바르게 입력해 주세요.\n(반복 시 참가가 제한될 수 있습니다)');
+    err('비속어·부적절한 단어는 사용할 수 없어! 바른 이름으로 다시 입력해 줘 😊');
+    return;
+  }
   let status='ok';
   if(CLOUD){
     $('btn-enter').disabled=true;$('form-err').textContent='확인 중…';
