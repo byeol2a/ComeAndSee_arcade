@@ -145,7 +145,8 @@ h1.title .hl{color:var(--yellow)}
 .rank-row .dt{color:var(--dim);font-variant-numeric:tabular-nums;font-weight:900;font-size:clamp(13px,3vw,16px)}
 .rank-row.me{background:rgba(46,230,255,.1)}
 .rank-empty{padding:28px 16px;color:var(--dim);font-weight:700}
-.rank-actions{display:none;gap:12px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+.rank-actions{display:none;gap:6px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+.rank-actions .btn.ghost{padding:6px 14px;font-size:12px;border-width:1.5px}
 .rank-actions.show{display:flex}
 .rank-count{color:var(--dim);font-weight:700;font-size:14px;margin-top:12px}
 .plays-left{color:var(--yellow);font-weight:900;font-size:14px;margin-top:10px;opacity:.85}
@@ -316,7 +317,7 @@ h1.title .hl{color:var(--yellow)}
       <div id="form-err"></div>
       <button class="btn disp" id="btn-enter" style="width:100%">입장하기</button>
       <button class="btn ghost" id="btn-reset-req" style="display:none;width:100%">🔑 비밀번호를 잊었어요 (초기화 요청)</button>
-      <div style="color:var(--dim);font-size:11px;font-weight:700;text-align:center">v2.4</div>
+      <div style="color:var(--dim);font-size:11px;font-weight:700;text-align:center">v2.5</div>
     </div>
   </section>
 
@@ -417,9 +418,8 @@ h1.title .hl{color:var(--yellow)}
     <div class="rank-count" id="rank-count"></div>
     <div class="rank-actions" id="rank-actions">
       <button class="btn ghost" style="border-color:rgba(255,214,10,.5);color:var(--yellow)" onclick="goStats()">📊 참가 현황</button>
-      <button class="btn ghost" style="border-color:rgba(46,230,255,.5);color:var(--cyan)" onclick="exportCSV()">⬇ CSV로 저장 (전체 기록)</button>
-      <button class="btn ghost" onclick="clearRecords()">기록 전체 삭제</button>
-      <button class="btn ghost" onclick="hideAdmin()">관리 메뉴 닫기</button>
+      <button class="btn ghost" style="border-color:rgba(46,230,255,.5);color:var(--cyan)" onclick="exportCSV()">⬇ CSV 저장</button>
+      <button class="btn ghost" onclick="hideAdmin()">✕ 닫기</button>
     </div>
   </section>
 
@@ -998,13 +998,6 @@ async function exportCSV(){
   document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
   beep(880,.1);setTimeout(()=>beep(1174,.15),110);
-}
-function clearRecords(){
-  const msg=CLOUD
-    ?'이 기기에 저장된 기록을 삭제할까요?\n※ 공용 랭킹(서버)의 기록은 Supabase 관리 화면에서만 삭제할 수 있습니다.'
-    :'정말 모든 기록을 삭제할까요?\n(삭제 전에 CSV로 먼저 저장하는 것을 추천!)';
-  if(!confirm(msg))return;
-  records=[];saveRecords();pending=[];savePending();renderRank();
 }
 
 /* ============ 게임 1 : 10.00초 ============ */
